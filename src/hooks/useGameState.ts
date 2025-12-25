@@ -109,20 +109,20 @@ export const useGameState = (): GameState => {
         setGameWinLine(gameResult.line);
       }
 
+      // Determine next active board using the NEW boards state
+      const targetBoard = newBoards[cellIndex];
+      if (targetBoard === undefined || targetBoard.winner !== null || targetBoard.cells.every((c): boolean => c !== null)) {
+        // If target board is won or full, player can play anywhere
+        setActiveBoard(null);
+      } else {
+        setActiveBoard(cellIndex);
+      }
+
       return newBoards;
     });
 
     // Add to move history
     setMoveHistory((prev): Move[] => [...prev, { boardIndex, cellIndex, player: currentPlayer }]);
-
-    // Determine next active board
-    const targetBoard = boards[cellIndex];
-    if (targetBoard === undefined || targetBoard.winner !== null || targetBoard.cells.every((c): boolean => c !== null)) {
-      // If target board is won or full, player can play anywhere
-      setActiveBoard(null);
-    } else {
-      setActiveBoard(cellIndex);
-    }
 
     // Switch player
     setCurrentPlayer((prev): Player => prev === 'X' ? 'O' : 'X');
