@@ -44,8 +44,8 @@ const SmallBoard: FC<SmallBoardProps> = ({
     <div 
       className={`
         relative
-        grid grid-cols-3 gap-1.5
-        p-3 rounded-xl
+        grid grid-cols-3 gap-1 sm:gap-1.5
+        p-2 sm:p-3 rounded-xl
         transition-all duration-300
         ${isActive && winner === null 
           ? 'ring-2 ring-indigo-500 active-board bg-slate-700/30' 

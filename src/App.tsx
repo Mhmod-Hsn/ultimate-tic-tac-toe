@@ -1,11 +1,11 @@
 import type { FC } from 'react';
 import {
-    GameBoard,
-    GameControls,
-    Header,
-    Particles,
-    PlayerIndicator,
-    Rules
+  GameBoard,
+  GameControls,
+  Header,
+  Particles,
+  PlayerIndicator,
+  Rules
 } from './components';
 import { useGameState } from './hooks/useGameState';
 
@@ -58,8 +58,28 @@ const App: FC = () => {
 
         <Rules />
 
-        <footer className="text-center text-slate-500 text-sm">
+        <footer className="text-center text-slate-500 text-sm space-y-2">
           <p>Play with a friend on the same device</p>
+          <p>
+            Made with ❤️ by{' '}
+            <a 
+              href="https://mhmodhsn.tech" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-slate-400 hover:text-white transition-colors"
+            >
+              Mahmoud Hassan
+            </a>
+            {' • '}
+            <a 
+              href="https://github.com/Mhmod-Hsn" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-slate-400 hover:text-white transition-colors"
+            >
+              GitHub
+            </a>
+          </p>
         </footer>
       </div>
     </div>

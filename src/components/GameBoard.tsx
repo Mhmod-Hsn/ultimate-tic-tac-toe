@@ -11,7 +11,7 @@ const GameBoard: FC<GameBoardProps> = ({
 }) => {
   return (
     <div className="relative">
-      <div className="grid grid-cols-3 gap-5 p-8 glass rounded-2xl">
+      <div className="grid grid-cols-3 gap-2 sm:gap-5 p-2 sm:p-6 glass rounded-2xl">
         {boards.map((board, boardIndex) => (
           <SmallBoard
             key={boardIndex}

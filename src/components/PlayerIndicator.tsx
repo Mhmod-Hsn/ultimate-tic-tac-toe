@@ -3,7 +3,7 @@ import type { PlayerIndicatorProps } from '../types';
 
 const PlayerIndicator: FC<PlayerIndicatorProps> = ({ currentPlayer, playerNames }) => {
   return (
-    <div className="flex items-center justify-center gap-12">
+    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-12">
       <div 
         className={`
           flex items-center gap-4 px-4 py-3 rounded-2xl 

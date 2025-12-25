@@ -107,5 +107,10 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 ---
 
 <p align="center">
-  Made with ❤️ and React
+  Made with ❤️ by <a href="https://mhmodhsn.tech">Mahmoud Hassan</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Mhmod-Hsn">GitHub</a> •
+  <a href="https://mhmodhsn.tech">Portfolio</a>
 </p>
