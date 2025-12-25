@@ -1,6 +1,6 @@
 # 🎮 Ultimate Tic Tac Toe
 
-A strategic twist on the classic Tic Tac Toe game built with **React**, **TypeScript**, and **Tailwind CSS**. Play locally with a friend in this beautiful, animated multiplayer experience.
+A strategic twist on the classic Tic Tac Toe game built with **React**, **TypeScript**, and **Tailwind CSS**. Challenge the AI or play locally with a friend in this beautiful, animated experience.
 
 ![Ultimate Tic Tac Toe Screenshot](./screenshot.png)
 ![Ultimate Tic Tac Toe WinnerScreenshot](./screenshot-winner.png)
@@ -8,8 +8,10 @@ A strategic twist on the classic Tic Tac Toe game built with **React**, **TypeSc
 ## ✨ Features
 
 - **🎯 Strategic Gameplay** - Your move determines which board your opponent plays in next
+- **🤖 Computer AI** - Challenge the AI with three difficulty levels (Easy, Medium, Hard)
 - **👥 Local Multiplayer** - Play with a friend on the same device
 - **🎨 Beautiful UI** - Modern glassmorphism design with gradient effects and animations
+- **🎛️ Main Menu** - Choose your game mode and difficulty from a sleek menu
 - **↩️ Undo Moves** - Made a mistake? Take it back!
 - **📱 Responsive** - Works on desktop and mobile devices
 - **⚡ Fast** - Built with Vite for lightning-fast development and builds
@@ -70,13 +72,15 @@ src/
 │   ├── Cell.tsx           # Individual cell component
 │   ├── SmallBoard.tsx     # 3x3 mini board
 │   ├── GameBoard.tsx      # Main 3x3 grid of boards
+│   ├── MainMenu.tsx       # Game mode & difficulty selection
 │   ├── PlayerIndicator.tsx # Shows current player
 │   ├── GameControls.tsx   # Undo & Reset buttons
 │   ├── Rules.tsx          # Expandable game rules
 │   ├── Header.tsx         # Game title
 │   └── Particles.tsx      # Animated background
 ├── hooks/
-│   └── useGameState.ts    # Game logic and state management
+│   ├── useGameState.ts    # Game logic and state management
+│   └── useComputerAI.ts   # AI opponent with minimax algorithm
 ├── types/
 │   └── index.ts           # TypeScript type definitions
 ├── App.tsx

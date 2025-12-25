@@ -1,3 +1,7 @@
+// Game mode types
+export type GameMode = 'menu' | 'multiplayer' | 'computer';
+export type Difficulty = 'easy' | 'medium' | 'hard';
+
 // Player types
 export type Player = 'X' | 'O';
 export type CellValue = Player | null;
