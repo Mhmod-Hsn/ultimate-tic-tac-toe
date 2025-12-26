@@ -1,23 +1,27 @@
 import type { FC } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-    GameBoard,
-    GameControls,
-    Header,
-    MainMenu,
-    Particles,
-    PlayerIndicator,
-    Rules
+  GameBoard,
+  GameControls,
+  Header,
+  MainMenu,
+  Particles,
+  PlayerIndicator,
+  Rules
 } from './components';
 import { useComputerAI } from './hooks/useComputerAI';
 import { useGameState } from './hooks/useGameState';
-import type { Difficulty, GameMode } from './types';
+import type { Difficulty, GameMode, GameVariant } from './types';
 
 const App: FC = () => {
   const [gameMode, setGameMode] = useState<GameMode>('menu');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [variant, setVariant] = useState<GameVariant>('classic');
   const [isAIThinking, setIsAIThinking] = useState(false);
   const aiThinkingRef = useRef(false);
+
+  // Memoize options to prevent unnecessary recreations
+  const gameOptions = useMemo(() => ({ variant }), [variant]);
 
   const {
     boards,
@@ -31,7 +35,8 @@ const App: FC = () => {
     resetGame,
     undoMove,
     moveHistory,
-  } = useGameState();
+    flashingCells,
+  } = useGameState(gameOptions);
 
   const { computeMove } = useComputerAI();
 
@@ -47,7 +52,7 @@ const App: FC = () => {
 
     // Add a small delay to make AI moves feel more natural
     const timeoutId = setTimeout(() => {
-      const aiMove = computeMove(boards, activeBoard, difficulty);
+      const aiMove = computeMove(boards, activeBoard, difficulty, variant);
       if (aiMove) {
         makeMove(aiMove.boardIndex, aiMove.cellIndex);
       }
@@ -60,12 +65,15 @@ const App: FC = () => {
       aiThinkingRef.current = false;
       setIsAIThinking(false);
     };
-  }, [gameMode, currentPlayer, gameWinner, boards, activeBoard, difficulty, computeMove, makeMove]);
+  }, [gameMode, currentPlayer, gameWinner, boards, activeBoard, difficulty, variant, computeMove, makeMove]);
 
-  const handleStartGame = (mode: GameMode, selectedDifficulty?: Difficulty): void => {
+  const handleStartGame = (mode: GameMode, selectedDifficulty?: Difficulty, selectedVariant?: GameVariant): void => {
     setGameMode(mode);
     if (selectedDifficulty) {
       setDifficulty(selectedDifficulty);
+    }
+    if (selectedVariant) {
+      setVariant(selectedVariant);
     }
     resetGame();
   };
@@ -106,6 +114,19 @@ const App: FC = () => {
     return playerNames;
   };
 
+  // Build mode indicator text
+  const getModeText = () => {
+    let text = gameMode === 'computer' 
+      ? `vs Computer (${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)})`
+      : 'Multiplayer';
+    
+    if (variant === 'disappearing') {
+      text += ' • Disappearing';
+    }
+    
+    return text;
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative">
       <Particles />
@@ -117,23 +138,19 @@ const App: FC = () => {
         <div className="text-center">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm">
             {gameMode === 'computer' ? (
-              <>
-                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                        d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <span className="text-slate-300">
-                  vs Computer ({difficulty.charAt(0).toUpperCase() + difficulty.slice(1)})
-                </span>
-              </>
+              <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
             ) : (
-              <>
-                <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span className="text-slate-300">Multiplayer</span>
-              </>
+              <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            )}
+            <span className="text-slate-300">{getModeText()}</span>
+            {variant === 'disappearing' && (
+              <span className="text-orange-400">✨</span>
             )}
           </span>
         </div>
@@ -164,6 +181,7 @@ const App: FC = () => {
           onCellClick={handleCellClick}
           gameWinner={gameWinner}
           gameWinLine={gameWinLine}
+          flashingCells={flashingCells}
         />
 
         <GameControls
@@ -191,9 +209,11 @@ const App: FC = () => {
 
         <footer className="text-center text-slate-500 text-sm space-y-2">
           <p>
-            {gameMode === 'computer' 
-              ? 'Challenge the AI opponent' 
-              : 'Play with a friend on the same device'}
+            {variant === 'disappearing' 
+              ? '✨ Disappearing mode: Each player can have max 3 marks per board!'
+              : gameMode === 'computer' 
+                ? 'Challenge the AI opponent' 
+                : 'Play with a friend on the same device'}
           </p>
           <p>
             Made with ❤️ by{' '}

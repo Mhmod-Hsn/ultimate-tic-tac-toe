@@ -1,13 +1,14 @@
 import { useCallback, useState } from 'react';
 import type {
-    BoardWinner,
-    CellValue,
-    GameState,
-    Move,
-    Player,
-    PlayerNames,
-    SmallBoardState,
-    WinResult
+  BoardWinner,
+  CellValue,
+  GameState,
+  GameVariant,
+  Move,
+  Player,
+  PlayerNames,
+  SmallBoardState,
+  WinResult
 } from '../types';
 
 // Check if there's a winner in a 3x3 grid
@@ -32,7 +33,7 @@ const checkWinner = (cells: CellValue[]): WinResult | null => {
     }
   }
   
-  // Check for draw
+  // Check for draw (only in classic mode - disappearing mode can't draw)
   if (cells.every((cell): cell is Player => cell !== null)) {
     return { winner: 'draw', line: null };
   }
@@ -46,10 +47,21 @@ const createInitialBoard = (): SmallBoardState[] => {
     cells: Array<CellValue>(9).fill(null),
     winner: null,
     winLine: null,
+    xMoveOrder: [],
+    oMoveOrder: [],
   }));
 };
 
-export const useGameState = (): GameState => {
+interface UseGameStateOptions {
+  variant?: GameVariant;
+}
+
+export const useGameState = (options: UseGameStateOptions = {}): GameState & {
+  flashingCells: Set<string>;
+  getFlashingCellForBoard: (boardIndex: number) => number | null;
+} => {
+  const { variant = 'classic' } = options;
+  
   const [boards, setBoards] = useState<SmallBoardState[]>(createInitialBoard);
   const [currentPlayer, setCurrentPlayer] = useState<Player>('X');
   const [activeBoard, setActiveBoard] = useState<number | null>(null);
@@ -57,6 +69,34 @@ export const useGameState = (): GameState => {
   const [gameWinLine, setGameWinLine] = useState<[number, number, number] | null>(null);
   const [moveHistory, setMoveHistory] = useState<Move[]>([]);
   const [playerNames, setPlayerNames] = useState<PlayerNames>({ X: 'Player X', O: 'Player O' });
+
+  // Get the flashing cell for a specific board (oldest mark that will disappear)
+  const getFlashingCellForBoard = useCallback((boardIndex: number): number | null => {
+    if (variant !== 'disappearing') return null;
+    
+    const board = boards[boardIndex];
+    if (!board) return null;
+    
+    const moveOrder = currentPlayer === 'X' ? board.xMoveOrder : board.oMoveOrder;
+    
+    // If player has 3 marks on this board, the oldest one will flash
+    if (moveOrder.length >= 3) {
+      return moveOrder[0] ?? null;
+    }
+    
+    return null;
+  }, [boards, currentPlayer, variant]);
+
+  // Compute all flashing cells as a Set
+  const flashingCells = new Set<string>();
+  if (variant === 'disappearing') {
+    for (let boardIndex = 0; boardIndex < 9; boardIndex++) {
+      const flashingCell = getFlashingCellForBoard(boardIndex);
+      if (flashingCell !== null) {
+        flashingCells.add(`${boardIndex}-${flashingCell}`);
+      }
+    }
+  }
 
   // Check if a board can be played
   const canPlayBoard = useCallback((boardIndex: number): boolean => {
@@ -91,14 +131,47 @@ export const useGameState = (): GameState => {
         if (idx !== boardIndex) return board;
         
         const newCells = [...board.cells];
+        let newXMoveOrder = [...board.xMoveOrder];
+        let newOMoveOrder = [...board.oMoveOrder];
+        
+        // In disappearing mode, remove oldest mark if player has 3 on this board
+        if (variant === 'disappearing') {
+          const playerMoveOrder = currentPlayer === 'X' ? newXMoveOrder : newOMoveOrder;
+          
+          if (playerMoveOrder.length >= 3) {
+            // Remove the oldest mark
+            const oldestCellIndex = playerMoveOrder[0];
+            if (oldestCellIndex !== undefined) {
+              newCells[oldestCellIndex] = null;
+            }
+            // Remove from move order
+            if (currentPlayer === 'X') {
+              newXMoveOrder = newXMoveOrder.slice(1);
+            } else {
+              newOMoveOrder = newOMoveOrder.slice(1);
+            }
+          }
+        }
+        
+        // Place the new mark
         newCells[cellIndex] = currentPlayer;
         
+        // Add to move order
+        if (currentPlayer === 'X') {
+          newXMoveOrder = [...newXMoveOrder, cellIndex];
+        } else {
+          newOMoveOrder = [...newOMoveOrder, cellIndex];
+        }
+        
+        // Check for winner (may have changed due to disappearing mark)
         const result = checkWinner(newCells);
         
         return {
           cells: newCells,
           winner: result?.winner ?? null,
           winLine: result?.line ?? null,
+          xMoveOrder: newXMoveOrder,
+          oMoveOrder: newOMoveOrder,
         };
       });
 
@@ -107,6 +180,10 @@ export const useGameState = (): GameState => {
       if (gameResult !== null) {
         setGameWinner(gameResult.winner);
         setGameWinLine(gameResult.line);
+      } else {
+        // In disappearing mode, game winner might have been removed
+        setGameWinner(null);
+        setGameWinLine(null);
       }
 
       // Determine next active board using the NEW boards state
@@ -128,7 +205,7 @@ export const useGameState = (): GameState => {
     setCurrentPlayer((prev): Player => prev === 'X' ? 'O' : 'X');
     
     return true;
-  }, [boards, currentPlayer, gameWinner, canPlayBoard, checkGameWinner]);
+  }, [boards, currentPlayer, gameWinner, canPlayBoard, checkGameWinner, variant]);
 
   // Reset the game
   const resetGame = useCallback((): void => {
@@ -154,10 +231,25 @@ export const useGameState = (): GameState => {
         const newCells = [...board.cells];
         newCells[lastMove.cellIndex] = null;
         
+        // Remove from move order
+        let newXMoveOrder = [...board.xMoveOrder];
+        let newOMoveOrder = [...board.oMoveOrder];
+        
+        if (lastMove.player === 'X') {
+          newXMoveOrder = newXMoveOrder.filter(i => i !== lastMove.cellIndex);
+        } else {
+          newOMoveOrder = newOMoveOrder.filter(i => i !== lastMove.cellIndex);
+        }
+        
+        // Re-check winner
+        const result = checkWinner(newCells);
+        
         return {
           cells: newCells,
-          winner: null,
-          winLine: null,
+          winner: result?.winner ?? null,
+          winLine: result?.line ?? null,
+          xMoveOrder: newXMoveOrder,
+          oMoveOrder: newOMoveOrder,
         };
       });
     });
@@ -192,6 +284,8 @@ export const useGameState = (): GameState => {
     resetGame,
     undoMove,
     moveHistory,
+    flashingCells,
+    getFlashingCellForBoard,
   };
 };
 

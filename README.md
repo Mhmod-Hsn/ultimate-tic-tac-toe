@@ -11,11 +11,23 @@ A strategic twist on the classic Tic Tac Toe game built with **React**, **TypeSc
 - **🎯 Strategic Gameplay** - Your move determines which board your opponent plays in next
 - **🤖 Computer AI** - Challenge the AI with three difficulty levels (Easy, Medium, Hard)
 - **👥 Local Multiplayer** - Play with a friend on the same device
+- **✨ Disappearing Mode** - Each player can only have 3 marks per board - oldest marks vanish!
 - **🎨 Beautiful UI** - Modern glassmorphism design with gradient effects and animations
-- **🎛️ Main Menu** - Choose your game mode and difficulty from a sleek menu
+- **🎛️ Main Menu** - Choose your game mode, variant, and difficulty from a sleek menu
 - **↩️ Undo Moves** - Made a mistake? Take it back!
 - **📱 Responsive** - Works on desktop and mobile devices
 - **⚡ Fast** - Built with Vite for lightning-fast development and builds
+
+## 🎮 Game Modes
+
+### Classic Mode
+Traditional Ultimate Tic Tac Toe rules. Marks stay on the board forever.
+
+### Disappearing Mode ✨
+- Each player can only have **3 marks per small board** at a time
+- When you place your 4th mark, your **oldest mark disappears**
+- Boards can become "unwon" if a winning mark vanishes
+- The game never ends in a draw - it keeps going until someone wins!
 
 ## 🎲 How to Play
 

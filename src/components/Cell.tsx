@@ -1,13 +1,13 @@
 import type { FC, ReactElement } from 'react';
 import type { CellProps } from '../types';
 
-const Cell: FC<CellProps> = ({ value, onClick, isPlayable }) => {
+const Cell: FC<CellProps> = ({ value, onClick, isPlayable, isFlashing }) => {
   const getSymbol = (): ReactElement | null => {
     if (value === 'X') {
       return (
         <svg 
           viewBox="0 0 100 100" 
-          className="w-full h-full p-1"
+          className={`w-full h-full p-1 ${isFlashing ? 'animate-flash' : ''}`}
         >
           <line 
             x1="20" y1="20" x2="80" y2="80" 
@@ -30,7 +30,7 @@ const Cell: FC<CellProps> = ({ value, onClick, isPlayable }) => {
       return (
         <svg 
           viewBox="0 0 100 100" 
-          className="w-full h-full p-1"
+          className={`w-full h-full p-1 ${isFlashing ? 'animate-flash' : ''}`}
         >
           <circle 
             cx="50" cy="50" r="35" 
@@ -61,6 +61,7 @@ const Cell: FC<CellProps> = ({ value, onClick, isPlayable }) => {
           ? 'hover:scale-105' 
           : ''
         }
+        ${isFlashing ? 'bg-red-500/20' : ''}
       `}
     >
       {getSymbol()}

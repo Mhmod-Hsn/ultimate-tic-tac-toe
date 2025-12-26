@@ -7,7 +7,8 @@ const GameBoard: FC<GameBoardProps> = ({
   activeBoard, 
   canPlayBoard, 
   onCellClick, 
-  gameWinner 
+  gameWinner,
+  flashingCells
 }) => {
   return (
     <div className="relative">
@@ -20,6 +21,7 @@ const GameBoard: FC<GameBoardProps> = ({
             isActive={activeBoard === null || activeBoard === boardIndex}
             isPlayable={canPlayBoard(boardIndex)}
             onCellClick={onCellClick}
+            flashingCells={flashingCells}
           />
         ))}
       </div>

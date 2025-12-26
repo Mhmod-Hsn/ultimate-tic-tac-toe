@@ -70,6 +70,9 @@ body {
 }
 
 /* Button styles */
+button {
+  @apply cursor-pointer;
+}
 .btn-primary {
   padding: 0.875rem 1.75rem;
   border-radius: 0.75rem;
@@ -110,6 +113,24 @@ body {
   animation: cellPop 0.3s ease-out forwards;
 }
 
+/* Flash animation for disappearing marks */
+@keyframes flash {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.3;
+    transform: scale(0.9);
+  }
+}
+
+.animate-flash {
+  animation: flash 0.5s ease-in-out infinite;
+}
 /* Fade in animation */
 @keyframes fadeIn {
   0% {

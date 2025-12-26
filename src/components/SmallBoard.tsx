@@ -7,7 +7,8 @@ const SmallBoard: FC<SmallBoardProps> = ({
   boardIndex, 
   isActive, 
   isPlayable, 
-  onCellClick 
+  onCellClick,
+  flashingCells
 }) => {
   const { cells, winner } = board;
 
@@ -57,23 +58,28 @@ const SmallBoard: FC<SmallBoardProps> = ({
         }
       `}
     >
-      {cells.map((cell, cellIndex) => (
-        <div
-          key={cellIndex}
-          className={`
-            bg-slate-700/50 rounded-md
-            ${cellIndex % 3 !== 2 ? 'border-r border-slate-600/50' : ''}
-            ${cellIndex < 6 ? 'border-b border-slate-600/50' : ''}
-          `}
-        >
-          <Cell
-            value={cell}
-            onClick={() => onCellClick(boardIndex, cellIndex)}
-            isPlayable={isPlayable && winner === null}
-            index={cellIndex}
-          />
-        </div>
-      ))}
+      {cells.map((cell, cellIndex) => {
+        const isFlashing = flashingCells?.has(`${boardIndex}-${cellIndex}`) ?? false;
+        
+        return (
+          <div
+            key={cellIndex}
+            className={`
+              bg-slate-700/50 rounded-md
+              ${cellIndex % 3 !== 2 ? 'border-r border-slate-600/50' : ''}
+              ${cellIndex < 6 ? 'border-b border-slate-600/50' : ''}
+            `}
+          >
+            <Cell
+              value={cell}
+              onClick={() => onCellClick(boardIndex, cellIndex)}
+              isPlayable={isPlayable && winner === null}
+              index={cellIndex}
+              isFlashing={isFlashing}
+            />
+          </div>
+        );
+      })}
       
       {getWinnerOverlay()}
       {getDrawOverlay()}

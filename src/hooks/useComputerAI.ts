@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { CellValue, Difficulty, Player, SmallBoardState } from '../types';
+import type { CellValue, Difficulty, GameVariant, Player, SmallBoardState } from '../types';
 
 interface AIMove {
   boardIndex: number;
@@ -58,20 +58,50 @@ const simulateMove = (
   boards: SmallBoardState[],
   boardIndex: number,
   cellIndex: number,
-  player: Player
+  player: Player,
+  variant: GameVariant = 'classic'
 ): SmallBoardState[] => {
   return boards.map((board, idx) => {
     if (idx !== boardIndex) return board;
 
     const newCells = [...board.cells];
+    let newXMoveOrder = [...board.xMoveOrder];
+    let newOMoveOrder = [...board.oMoveOrder];
+
+    // In disappearing mode, remove oldest mark if player has 3 on this board
+    if (variant === 'disappearing') {
+      const playerMoveOrder = player === 'X' ? newXMoveOrder : newOMoveOrder;
+      
+      if (playerMoveOrder.length >= 3) {
+        const oldestCellIndex = playerMoveOrder[0];
+        if (oldestCellIndex !== undefined) {
+          newCells[oldestCellIndex] = null;
+        }
+        if (player === 'X') {
+          newXMoveOrder = newXMoveOrder.slice(1);
+        } else {
+          newOMoveOrder = newOMoveOrder.slice(1);
+        }
+      }
+    }
+
     newCells[cellIndex] = player;
+
+    // Update move order
+    if (player === 'X') {
+      newXMoveOrder = [...newXMoveOrder, cellIndex];
+    } else {
+      newOMoveOrder = [...newOMoveOrder, cellIndex];
+    }
 
     const winner = checkWinner(newCells);
 
     return {
       cells: newCells,
       winner: winner,
-      winLine: null, // We don't need win lines for AI simulation
+      winLine: null,
+      xMoveOrder: newXMoveOrder,
+      oMoveOrder: newOMoveOrder,
     };
   });
 };
@@ -96,7 +126,7 @@ const evaluateGameState = (boards: SmallBoardState[]): Player | 'draw' | null =>
 };
 
 // Heuristic evaluation for a position (positive = good for O, negative = good for X)
-const evaluatePosition = (boards: SmallBoardState[]): number => {
+const evaluatePosition = (boards: SmallBoardState[], variant: GameVariant = 'classic'): number => {
   const gameResult = evaluateGameState(boards);
   
   if (gameResult === 'O') return 10000;
@@ -109,6 +139,14 @@ const evaluatePosition = (boards: SmallBoardState[]): number => {
   for (const board of boards) {
     if (board.winner === 'O') score += 100;
     else if (board.winner === 'X') score -= 100;
+  }
+
+  // In disappearing mode, having more marks is valuable (potential for future wins)
+  if (variant === 'disappearing') {
+    for (const board of boards) {
+      score += board.oMoveOrder.length * 5;
+      score -= board.xMoveOrder.length * 5;
+    }
   }
 
   // Evaluate lines in the meta-game
@@ -154,26 +192,27 @@ const minimax = (
   depth: number,
   alpha: number,
   beta: number,
-  isMaximizing: boolean
+  isMaximizing: boolean,
+  variant: GameVariant = 'classic'
 ): number => {
   const gameResult = evaluateGameState(boards);
   
   if (gameResult !== null || depth === 0) {
-    return evaluatePosition(boards);
+    return evaluatePosition(boards, variant);
   }
 
   const validMoves = getValidMoves(boards, activeBoard);
   
   if (validMoves.length === 0) {
-    return evaluatePosition(boards);
+    return evaluatePosition(boards, variant);
   }
 
   if (isMaximizing) {
     let maxEval = -Infinity;
     for (const move of validMoves) {
-      const newBoards = simulateMove(boards, move.boardIndex, move.cellIndex, 'O');
+      const newBoards = simulateMove(boards, move.boardIndex, move.cellIndex, 'O', variant);
       const nextActive = getNextActiveBoard(newBoards, move.cellIndex);
-      const evalScore = minimax(newBoards, nextActive, depth - 1, alpha, beta, false);
+      const evalScore = minimax(newBoards, nextActive, depth - 1, alpha, beta, false, variant);
       maxEval = Math.max(maxEval, evalScore);
       alpha = Math.max(alpha, evalScore);
       if (beta <= alpha) break; // Pruning
@@ -182,9 +221,9 @@ const minimax = (
   } else {
     let minEval = Infinity;
     for (const move of validMoves) {
-      const newBoards = simulateMove(boards, move.boardIndex, move.cellIndex, 'X');
+      const newBoards = simulateMove(boards, move.boardIndex, move.cellIndex, 'X', variant);
       const nextActive = getNextActiveBoard(newBoards, move.cellIndex);
-      const evalScore = minimax(newBoards, nextActive, depth - 1, alpha, beta, true);
+      const evalScore = minimax(newBoards, nextActive, depth - 1, alpha, beta, true, variant);
       minEval = Math.min(minEval, evalScore);
       beta = Math.min(beta, evalScore);
       if (beta <= alpha) break; // Pruning
@@ -197,7 +236,8 @@ const minimax = (
 const getAIMove = (
   boards: SmallBoardState[],
   activeBoard: number | null,
-  difficulty: Difficulty
+  difficulty: Difficulty,
+  variant: GameVariant = 'classic'
 ): AIMove | null => {
   const validMoves = getValidMoves(boards, activeBoard);
   
@@ -220,9 +260,9 @@ const getAIMove = (
     let bestScore = -Infinity;
 
     for (const move of validMoves) {
-      const newBoards = simulateMove(boards, move.boardIndex, move.cellIndex, 'O');
+      const newBoards = simulateMove(boards, move.boardIndex, move.cellIndex, 'O', variant);
       const nextActive = getNextActiveBoard(newBoards, move.cellIndex);
-      const score = minimax(newBoards, nextActive, 2, -Infinity, Infinity, false);
+      const score = minimax(newBoards, nextActive, 2, -Infinity, Infinity, false, variant);
       
       if (score > bestScore) {
         bestScore = score;
@@ -241,9 +281,9 @@ const getAIMove = (
   const depth = validMoves.length > 20 ? 3 : validMoves.length > 10 ? 4 : 5;
 
   for (const move of validMoves) {
-    const newBoards = simulateMove(boards, move.boardIndex, move.cellIndex, 'O');
+    const newBoards = simulateMove(boards, move.boardIndex, move.cellIndex, 'O', variant);
     const nextActive = getNextActiveBoard(newBoards, move.cellIndex);
-    const score = minimax(newBoards, nextActive, depth, -Infinity, Infinity, false);
+    const score = minimax(newBoards, nextActive, depth, -Infinity, Infinity, false, variant);
     
     if (score > bestScore) {
       bestScore = score;
@@ -258,9 +298,10 @@ export const useComputerAI = () => {
   const computeMove = useCallback((
     boards: SmallBoardState[],
     activeBoard: number | null,
-    difficulty: Difficulty
+    difficulty: Difficulty,
+    variant: GameVariant = 'classic'
   ): AIMove | null => {
-    return getAIMove(boards, activeBoard, difficulty);
+    return getAIMove(boards, activeBoard, difficulty, variant);
   }, []);
 
   return { computeMove };

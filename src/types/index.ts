@@ -1,5 +1,6 @@
 // Game mode types
 export type GameMode = 'menu' | 'multiplayer' | 'computer';
+export type GameVariant = 'classic' | 'disappearing';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
 // Player types
@@ -18,6 +19,9 @@ export interface SmallBoardState {
   cells: CellValue[];
   winner: BoardWinner;
   winLine: [number, number, number] | null;
+  // Track move order per player for disappearing mode
+  xMoveOrder: number[];  // Cell indices in order placed
+  oMoveOrder: number[];  // Cell indices in order placed
 }
 
 // Move history entry
@@ -55,6 +59,7 @@ export interface CellProps {
   onClick: () => void;
   isPlayable: boolean;
   index: number;
+  isFlashing?: boolean;  // For disappearing mode - mark about to disappear
 }
 
 export interface SmallBoardProps {
@@ -63,6 +68,7 @@ export interface SmallBoardProps {
   isActive: boolean;
   isPlayable: boolean;
   onCellClick: (boardIndex: number, cellIndex: number) => void;
+  flashingCells?: Set<string>;  // Set of "boardIndex-cellIndex" strings
 }
 
 export interface GameBoardProps {
@@ -72,6 +78,7 @@ export interface GameBoardProps {
   onCellClick: (boardIndex: number, cellIndex: number) => void;
   gameWinner: BoardWinner;
   gameWinLine: [number, number, number] | null;
+  flashingCells?: Set<string>;  // Set of "boardIndex-cellIndex" strings
 }
 
 export interface PlayerIndicatorProps {
