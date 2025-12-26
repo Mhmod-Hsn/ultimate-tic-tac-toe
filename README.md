@@ -3,8 +3,9 @@
 A strategic twist on the classic Tic Tac Toe game built with **React**, **TypeScript**, and **Tailwind CSS**. Challenge the AI or play locally with a friend in this beautiful, animated experience.
 
 ![Ultimate Tic Tac Toe Screenshot](./screenshots/screenshot.png)
-![Ultimate Tic Tac Toe WinnerScreenshot](./screenshots/screenshot-winner.png)
-![Ultimate Tic Tac Toe AI OpponentScreenshot](./screenshots/screenshot-ai-opponent.png)
+![Ultimate Tic Tac Toe Modes Screenshot](./screenshots/screenshot-modes.png)
+![Ultimate Tic Tac Toe Winner Screenshot](./screenshots/screenshot-winner.png)
+![Ultimate Tic Tac Toe AI Opponent Screenshot](./screenshots/screenshot-ai-opponent.png)
 
 ## ✨ Features
 
